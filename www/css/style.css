@@ -1,0 +1,38 @@
+.container {
+  width: 100%;
+  height: 100%;
+  padding: 60px !important;
+  font-family: Sans Serif;
+  font-size: 24px;
+}
+
+.btn {
+  width: 240px;
+  margin: 10px;
+  font-size: 18px !important;
+  text-align: left !important;
+}
+
+.addRecipeButton {
+  width: 120px;
+  font-size: 18px;
+  background:  !important;
+  border-color: green !important;
+  color: Green;
+}
+
+.save, .edit {
+  width: 80px;
+  font-size: 10px;
+  text-align: center !important;
+  background: green !important;
+  border-color: green !important;
+}
+
+.delete, .cancel {
+  width: 80px;
+  font-size: 10px;
+  background: orange !important;
+  border-color: orange !important;
+  text-align: center !important;
+}

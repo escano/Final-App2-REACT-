@@ -1,0 +1,208 @@
+
+
+var initRecipeList =  JSON.parse(localStorage.getItem('_initRecipeList')) || [];
+
+var ReceipeBox = React.createClass({
+  
+  getInitialState: function() {
+ 
+    //console.log("testing: ",recipeInitList[0].ingredients);
+    //var recipeInitList=[{id:1,name:"Tomato Soup",ingredients:["Tomato","Olie","Onion","Salt"]},{id:2,name:"Potato Soup",ingredients:["Potato","Olie","Onion","Salt"]},{id:3,name:"Carrot Soup",ingredients:["Carrot","Olie","Onion","Salt"]}];
+         
+    return {recipeList:initRecipeList};
+    
+  },
+  componentDidMount: function() {
+     var _data=this.props.initRecipeList;
+     localStorage.setItem('_initRecipeList', JSON.stringify(_data));
+     this.setState({recipeList:_data});
+  },
+  onReceiptChanged: function(newReceipeState){
+     localStorage.setItem('_initRecipeList', JSON.stringify(newReceipeState));
+     this.setState({recipeList: newReceipeState});
+  },    
+  render: function() {
+    
+    return ( 
+        
+        <div className="row">
+             <div className="col-xs-12"> 
+               <h2>My Recipe List</h2>
+             </div>
+             <div className="col-xs-12">
+                <ReceiptList fulldata={this.state.recipeList} callbackParent={this.onReceiptChanged}/>
+             </div>
+             <div className="col-xs-12">
+                <button type="button" className="btn btn-primary addRecipeButton" data-toggle="modal" data-target="#RecipeContent" data-whatever="@AddRecipe">Add Recipe</button>
+                <MainModal fullList={this.state.recipeList} callbackParent={this.onReceiptChanged}/>
+             </div>
+        </div>  
+    );
+  }
+});
+
+var ReceiptList = React.createClass({
+        getInitialState: function() {
+          return {
+            recipeList:this.props.fulldata          };
+        },
+        componentDidMount: function() {
+            this.setState({recipeList:this.props.fulldata});
+        },
+  
+        deleteItem: function(e,index){
+            //var updatedList=this.state.recipeList.splice(this.id,1);
+          var newList=this.state.recipeList;
+          newList.splice(parseInt(e.id)-1,1);
+          for (var i=0;i<newList.length;i++)
+          {
+                newList[i].id=i+1;
+          }     
+          this.setState({recipeList:newList});
+          $('.collapse.in').collapse('hide');
+          return this.props.callbackParent(this.state.recipeList); 
+        },
+        onReceiptChanged: function(newReceipeState){
+          return (this.props.callbackParent(this.state.recipeList));
+        },
+        render: function() {
+              var listIngredients=function(arr){
+                  return(arr.map(function(item,index){
+                       return (<li className="list-group-item">{item}</li>);
+                  }));
+              };
+            return (
+              <div>
+                {this.props.fulldata.map(function(item, index){
+                    var targetName="#"+index;
+                    var targetIndex=""+index;
+                    var item=item;
+                    return (<div>
+                              <button type="button" className="btn btn-info" data-toggle="collapse" data-target={"#"+item.id}>{item.name}</button>
+                              <div className="panel panel-default collapse" id={item.id} >
+                                <div className="panel-heading">Ingredients</div>
+                                <div className="panel-body">
+                                  <ul className="list-group">
+                                    {listIngredients(item.ingredients)}
+                                  </ul>
+                                </div>
+                                <div className="panel-footer">
+                                      <button type="button" className="btn btn-primary edit" id="Edit" data-toggle="modal" data-target={"#EditContent"+item.id} >Edit</button>
+                                      <button type="button" value={item.id} className="btn btn-primary delete" id={"DeleteIngredientButton"+item.id} onClick={this.deleteItem.bind(this,item)}>Delete</button>
+                                      <EditModal fullList={this.state.recipeList} receiptID={item.id} callbackParent={this.onReceiptChanged}/>
+                                </div>
+                              </div>
+                            </div>
+                           );
+                          },this)}
+               </div>
+                );
+          
+        }
+  
+    });
+    
+
+
+var MainModal = React.createClass({
+  getInitialState: function() {
+    // we ONLY set the initial state from the props
+    return {recipeList: this.props.fullList};
+  },
+  AddRecipe: function(){
+    var newReceipt=this.refs.myReceipt.value;
+    var newIngredient=this.refs.myIngredient.value.split(",");
+    var newdata={id:this.props.fullList.length+1,name:newReceipt,ingredients:newIngredient};
+    this.props.fullList.push(newdata)
+    this.setState({ recipeList: this.props.fullList });
+    //var newState = !this.state.checked;
+    //this.setState({ recipeList: newList });
+    return this.props.callbackParent(this.state.recipeList);
+  },
+  render: function() {
+      return (
+      <div>
+        <div className="modal fade" id="RecipeContent" tabindex="-1" role="dialog" aria-labelledby="RecipeContent" >
+              <div className="modal-dialog" role="document">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 className="modal-title" id="RecipeContent"><h2>Add New Receipt:</h2></h4>
+                  </div>
+                  <div className="modal-body">
+                    <form>
+                      <div className="form-group">
+                        <label htmlFor="Receipt-name" className="control-label">Receipt Name:</label>
+                        <input type="text" className="form-control" ref="myReceipt" id="Receipt-name" defaultValue="Enter the recipe name"/>
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="ingredient-text" className="control-label">Ingredients:</label>
+                        <textarea className="form-control" ref="myIngredient" id="ingredient-text" defaultValue="Enter the ingredients and separate with commas..."></textarea>
+                      </div>
+                    </form>
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn btn-default cancel" data-dismiss="modal">Cancel</button>
+                    <button type="button" className="btn btn-primary save" data-dismiss="modal" onClick={this.AddRecipe.bind(this)} >Save</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+      );
+  }
+  
+});
+
+var EditModal = React.createClass({
+  getInitialState: function() {
+    // we ONLY set the initial state from the props
+    return {recipeList: this.props.fullList,
+            itemID:this.props.receiptID};
+  },
+  EditRecipe: function(){
+    var updatedReceipt=this.refs.myEditReceipt.value;
+    var updatedIngredient=this.refs.myEditIngredient.value.split(",");
+    var newdata={id:this.state.itemID,name:updatedReceipt,ingredients:updatedIngredient};
+    this.props.fullList[this.state.itemID-1]=newdata;
+    this.setState({ recipeList: this.props.fullList });
+    return this.props.callbackParent(this.state.recipeList); 
+  },
+  render: function() {
+    return (
+      <div>
+        <div className="modal fade" id={"EditContent"+this.state.itemID} tabindex="-1" role="dialog" aria-labelledby={"EditContent"+this.state.itemID} >
+              <div className="modal-dialog" role="document">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 className="modal-title" id={"EditContent"+this.state.itemID}><h2>Edit Receipt</h2></h4>
+                  </div>
+                  <div className="modal-body">
+                    <form>
+                      <div className="form-group">
+                        <label htmlFor="EditReceipt-name" className="control-label">Receipt Name:</label>
+                        <input type="text" className="form-control" ref="myEditReceipt" id="EditReceipt-name" defaultValue={this.state.recipeList[this.state.itemID-1].name}/>
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="Editingredient-text" className="control-label">Ingredients:</label>
+                        <textarea className="form-control" ref="myEditIngredient" id="Editingredient-text" defaultValue={this.state.recipeList[this.state.itemID-1].ingredients}/>
+                      </div>
+                    </form>
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn btn-default cancel"  data-dismiss="modal">Cancel</button>
+                    <button type="button" className="btn btn-primary save" data-dismiss="modal" onClick={this.EditRecipe.bind(this)}>Save</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+      );
+  }
+  
+});
+
+
+
+ReactDOM.render(<ReceipeBox initRecipeList={initRecipeList}/>, RecipePanel);
